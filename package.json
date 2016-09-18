@@ -1,0 +1,16 @@
+{
+  "name": "bdmyng",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "test": "error"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {},
+  "devDependencies": {
+    "jasmine": "^2.4.1",
+    "karma-chrome-launcher": "^1.0.1",
+    "karma-jasmine": "^1.0.2"
+  }
+}
