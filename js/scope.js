@@ -224,22 +224,63 @@ Scope.prototype.$watchGroup = function (watchFns, listenerFn) {
     };
 };
 
-Scope.prototype.$new = function(isolated, parent) {
+Scope.prototype.$new = function (isolated, parent) {
     var child;
     parent = parent || this;
     if (isolated) {
         child = new Scope();
         child.$root = parent.$root;
-        child.$$asyncQueue = parent.$$asyncQueue; 
-        child.$$postDigestQueue = parent.$$postDigestQueue; 
+        child.$$asyncQueue = parent.$$asyncQueue;
+        child.$$postDigestQueue = parent.$$postDigestQueue;
         child.$$applyAsyncQueue = parent.$$applyAsyncQueue;
     } else {
-        var ChildScope = function () { }; 
-        ChildScope.prototype = this; 
+        var ChildScope = function () { };
+        ChildScope.prototype = this;
         child = new ChildScope();
-    } 
-    parent.$$children.push(child); 
-    child.$$watchers = []; 
+    }
+    parent.$$children.push(child);
+    child.$$watchers = [];
     child.$$children = [];
+    child.$parent = parent;
     return child;
+};
+Scope.prototype.$destroy = function () {
+    if (this.$parent) {
+        var siblings = this.$parent.$$children;
+        var indexOfThis = siblings.indexOf(this);
+        if (indexOfThis >= 0) {
+            siblings.splice(indexOfThis, 1);
+        }
+    }
+    this.$$watchers = null;
+};
+
+Scope.prototype.$watchCollection = function (watchFn, listenerFn) {
+    var newValue;
+    var oldValue;
+    var self = this;
+    var changeCount = 0;
+    var internalWatchFn = function (scope) {
+        newValue = watchFn(scope);
+        if (_.isObject(newValue)) {
+            if (_.isArray(newValue)) {
+                if (!_.isArray(oldValue)) {
+                    changeCount++;
+                    oldValue = [];
+                }
+            } else {
+                
+            }
+        } else {
+            if (!self.$$areEqual(newValue, oldValue, false)) {
+                changeCount++;
+            }
+            oldValue = newValue;
+        }
+        return changeCount;
+    };
+    var internalListenerFn = function () {
+        listenerFn(newValue, oldValue, self);
+    };
+    return this.$watch(internalWatchFn, internalListenerFn);
 };
