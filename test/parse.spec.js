@@ -199,4 +199,72 @@ describe("parse", function () {
         var fn = parse('anObject.aFunction()');
         expect(fn(scope)).toBe(42);
     });
+    it('binds bare functions to the scope', function () {
+        var scope = {
+            aFunction: function () {
+                return this;
+            }
+        };
+        var fn = parse('aFunction()');
+        expect(fn(scope)).toBe(scope);
+    });
+    it('binds bare functions on locals to the locals', function () {
+        var scope = {};
+        var locals = {
+            aFunction: function () {
+                return this;
+            }
+        };
+        var fn = parse('aFunction()');
+        expect(fn(scope, locals)).toBe(locals);
+    });
+    it('parses a simple attribute assignment', function () {
+        var fn = parse('anAttribute = 42');
+        var scope = {};
+        fn(scope);
+        expect(scope.anAttribute).toBe(42);
+    });
+    it('can assign any primary expression', function () {
+        var fn = parse('anAttribute = aFunction()');
+        var scope = { aFunction: _.constant(42) }; fn(scope);
+        expect(scope.anAttribute).toBe(42);
+    });
+
+    it('can assign a computed object property', function () {
+        var fn = parse('anObject["anAttribute"] = 42');
+        var scope = { anObject: {} };
+        fn(scope); expect(scope.anObject.anAttribute).toBe(42);
+    });
+    it('can assign a non- computed object property', function () {
+        var fn = parse('anObject.anAttribute = 42');
+        var scope = { anObject: {} };
+        fn(scope);
+        expect(scope.anObject.anAttribute).toBe(42);
+    });
+    it('can assign a nested object property', function () {
+        var fn = parse('anArray[0].anAttribute = 42');
+        var scope = { anArray: [{}] };
+        fn(scope); expect(scope.anArray[0].anAttribute).toBe(42);
+    });
+    it('creates the objects in the assignment path that do not exist', function () {
+        var fn = parse('some["nested"].property.path = 42');
+        var scope = {};
+        fn(scope);
+        expect(scope.some.nested.property.path).toBe(42);
+    });
+    it('does not allow calling the function constructor', function () {
+        expect(function () {
+            var fn = parse('aFunction.constructor("return window;")()');
+            fn({ aFunction: function () { } });
+        }).toThrow();
+    });
+    it('does not allow accessing window as computed property', function () {
+        var fn = parse('anObject["wnd"]');
+        expect(function () { fn({ anObject: { wnd: window } }); }).toThrow();
+    });
+    it('does not allow accessing window as non - computed property', function () {
+        var fn = parse('anObject.wnd');
+        expect(function () { fn({ anObject: { wnd: window } }); }).toThrow();
+    });
+
 });
