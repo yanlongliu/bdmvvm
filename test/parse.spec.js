@@ -150,121 +150,247 @@ describe("parse", function () {
     //     var fn = parse('lock[keys["aKey"]]');
     //     expect(fn({ keys: { aKey: 'theKey' }, lock: { theKey: 42 } })).toBe(42);
     // });
-    it('parses a function call', function () {
-        var fn = parse('aFunction()');
-        expect(fn({ aFunction: function () { return 42; } })).toBe(42);
-    });
-    it('parses a function call with a single number argument', function () {
-        var fn = parse('aFunction(42)');
-        expect(fn({ aFunction: function (n) { return n; } })).toBe(42);
-    });
-    it('parses a function call with a single identifier argument', function () {
-        var fn = parse('aFunction(n)');
-        expect(fn({ n: 42, aFunction: function (arg) { return arg; } })).toBe(42);
-    });
-    it('parses a function call with a single function call argument', function () {
-        var fn = parse('aFunction(argFn())');
-        expect(fn({
-            argFn: _.constant(42),
-            aFunction: function (arg) { return arg; }
-        })).toBe(42);
-    });
-    it('parses a function call with multiple arguments', function () {
-        var fn = parse('aFunction(37, n, argFn())');
-        expect(fn({
-            n: 3,
-            argFn: _.constant(2),
-            aFunction: function (a1, a2, a3) { return a1 + a2 + a3; }
-        })).toBe(42);
-    });
-    it('calls methods accessed as computed properties', function () {
-        var scope = {
-            anObject: {
-                aMember: 42, aFunction: function () {
-                    return this.aMember;
-                }
-            }
-        };
-        var fn = parse('anObject["aFunction"]()');
-        expect(fn(scope)).toBe(42);
-    });
-    it('calls methods accessed as non - computed properties', function () {
-        var scope = {
-            anObject: {
-                aMember: 42, aFunction: function () {
-                    return this.aMember;
-                }
-            }
-        };
-        var fn = parse('anObject.aFunction()');
-        expect(fn(scope)).toBe(42);
-    });
-    it('binds bare functions to the scope', function () {
-        var scope = {
-            aFunction: function () {
-                return this;
-            }
-        };
-        var fn = parse('aFunction()');
-        expect(fn(scope)).toBe(scope);
-    });
-    it('binds bare functions on locals to the locals', function () {
-        var scope = {};
-        var locals = {
-            aFunction: function () {
-                return this;
-            }
-        };
-        var fn = parse('aFunction()');
-        expect(fn(scope, locals)).toBe(locals);
-    });
-    it('parses a simple attribute assignment', function () {
-        var fn = parse('anAttribute = 42');
-        var scope = {};
-        fn(scope);
-        expect(scope.anAttribute).toBe(42);
-    });
-    it('can assign any primary expression', function () {
-        var fn = parse('anAttribute = aFunction()');
-        var scope = { aFunction: _.constant(42) }; fn(scope);
-        expect(scope.anAttribute).toBe(42);
-    });
+    // it('parses a function call', function () {
+    //     var fn = parse('aFunction()');
+    //     expect(fn({ aFunction: function () { return 42; } })).toBe(42);
+    // });
+    // it('parses a function call with a single number argument', function () {
+    //     var fn = parse('aFunction(42)');
+    //     expect(fn({ aFunction: function (n) { return n; } })).toBe(42);
+    // });
+    // it('parses a function call with a single identifier argument', function () {
+    //     var fn = parse('aFunction(n)');
+    //     expect(fn({ n: 42, aFunction: function (arg) { return arg; } })).toBe(42);
+    // });
+    // it('parses a function call with a single function call argument', function () {
+    //     var fn = parse('aFunction(argFn())');
+    //     expect(fn({
+    //         argFn: _.constant(42),
+    //         aFunction: function (arg) { return arg; }
+    //     })).toBe(42);
+    // });
+    // it('parses a function call with multiple arguments', function () {
+    //     var fn = parse('aFunction(37, n, argFn())');
+    //     expect(fn({
+    //         n: 3,
+    //         argFn: _.constant(2),
+    //         aFunction: function (a1, a2, a3) { return a1 + a2 + a3; }
+    //     })).toBe(42);
+    // });
+    // it('calls methods accessed as computed properties', function () {
+    //     var scope = {
+    //         anObject: {
+    //             aMember: 42, aFunction: function () {
+    //                 return this.aMember;
+    //             }
+    //         }
+    //     };
+    //     var fn = parse('anObject["aFunction"]()');
+    //     expect(fn(scope)).toBe(42);
+    // });
+    // it('calls methods accessed as non - computed properties', function () {
+    //     var scope = {
+    //         anObject: {
+    //             aMember: 42, aFunction: function () {
+    //                 return this.aMember;
+    //             }
+    //         }
+    //     };
+    //     var fn = parse('anObject.aFunction()');
+    //     expect(fn(scope)).toBe(42);
+    // });
+    // it('binds bare functions to the scope', function () {
+    //     var scope = {
+    //         aFunction: function () {
+    //             return this;
+    //         }
+    //     };
+    //     var fn = parse('aFunction()');
+    //     expect(fn(scope)).toBe(scope);
+    // });
+    // it('binds bare functions on locals to the locals', function () {
+    //     var scope = {};
+    //     var locals = {
+    //         aFunction: function () {
+    //             return this;
+    //         }
+    //     };
+    //     var fn = parse('aFunction()');
+    //     expect(fn(scope, locals)).toBe(locals);
+    // });
+    // it('parses a simple attribute assignment', function () {
+    //     var fn = parse('anAttribute = 42');
+    //     var scope = {};
+    //     fn(scope);
+    //     expect(scope.anAttribute).toBe(42);
+    // });
+    // it('can assign any primary expression', function () {
+    //     var fn = parse('anAttribute = aFunction()');
+    //     var scope = { aFunction: _.constant(42) }; fn(scope);
+    //     expect(scope.anAttribute).toBe(42);
+    // });
 
-    it('can assign a computed object property', function () {
-        var fn = parse('anObject["anAttribute"] = 42');
-        var scope = { anObject: {} };
-        fn(scope); expect(scope.anObject.anAttribute).toBe(42);
-    });
-    it('can assign a non- computed object property', function () {
-        var fn = parse('anObject.anAttribute = 42');
-        var scope = { anObject: {} };
-        fn(scope);
-        expect(scope.anObject.anAttribute).toBe(42);
-    });
-    it('can assign a nested object property', function () {
-        var fn = parse('anArray[0].anAttribute = 42');
-        var scope = { anArray: [{}] };
-        fn(scope); expect(scope.anArray[0].anAttribute).toBe(42);
-    });
-    it('creates the objects in the assignment path that do not exist', function () {
-        var fn = parse('some["nested"].property.path = 42');
+    // it('can assign a computed object property', function () {
+    //     var fn = parse('anObject["anAttribute"] = 42');
+    //     var scope = { anObject: {} };
+    //     fn(scope); expect(scope.anObject.anAttribute).toBe(42);
+    // });
+    // it('can assign a non- computed object property', function () {
+    //     var fn = parse('anObject.anAttribute = 42');
+    //     var scope = { anObject: {} };
+    //     fn(scope);
+    //     expect(scope.anObject.anAttribute).toBe(42);
+    // });
+    // it('can assign a nested object property', function () {
+    //     var fn = parse('anArray[0].anAttribute = 42');
+    //     var scope = { anArray: [{}] };
+    //     fn(scope); expect(scope.anArray[0].anAttribute).toBe(42);
+    // });
+    // it('creates the objects in the assignment path that do not exist', function () {
+    //     var fn = parse('some["nested"].property.path = 42');
+    //     var scope = {};
+    //     fn(scope);
+    //     expect(scope.some.nested.property.path).toBe(42);
+    // });
+    // it('does not allow calling the function constructor', function () {
+    //     expect(function () {
+    //         var fn = parse('aFunction.constructor("return window;")()');
+    //         fn({ aFunction: function () { } });
+    //     }).toThrow();
+    // });
+    // it('does not allow accessing window as computed property', function () {
+    //     var fn = parse('anObject["wnd"]');
+    //     expect(function () { fn({ anObject: { wnd: window } }); }).toThrow();
+    // });
+    // it('does not allow accessing window as non - computed property', function () {
+    //     var fn = parse('anObject.wnd');
+    //     expect(function () { fn({ anObject: { wnd: window } }); }).toThrow();
+    // });
+
+    // it('parses a unary +', function () {
+    //     expect(parse('+42')()).toBe(42);
+    //     expect(parse('+a')({ a: 42 })).toBe(42);
+    // });
+    // it('replaces undefined with zero for unary +', function () {
+    //     expect(parse('+a')({})).toBe(0);
+    // });
+    // it('parses a unary !', function () {
+    //     expect(parse('!true')()).toBe(false);
+    //     expect(parse('!42')()).toBe(false);
+    //     expect(parse('!a')({ a: false })).toBe(true);
+    //     expect(parse('!!a')({ a: false })).toBe(false);
+    // });
+    // it('parses a unary -', function () {
+    //     expect(parse('-42')()).toBe(-42);
+    //     expect(parse('-a')({ a: -42 })).toBe(42);
+    //     expect(parse('--a')({ a: -42 })).toBe(-42);
+    //     expect(parse('-a')({})).toBe(0);
+    // });
+    // it('parses a ! in a string', function () {
+    //     expect(parse('"!"')()).toBe('!');
+    // });
+    // it('parses a multiplication', function () {
+    //     expect(parse('21 * 2')()).toBe(42);
+    // });
+    // it('parses a division', function () {
+    //     expect(parse('84 / 2')()).toBe(42);
+    // });
+    // it('parses a remainder', function () {
+    //     expect(parse('85 % 43')()).toBe(42);
+    // });
+    // it('parses several multiplicatives', function () {
+    //     expect(parse('36 * 2 % 5')()).toBe(2);
+    // });
+    // it('parses an addition', function () {
+    //     expect(parse('20 + 22')()).toBe(42);
+    // });
+    // it('parses a subtraction', function () {
+    //     expect(parse('42 - 22')()).toBe(20);
+    // });
+    // it('parses multiplicatives on a higher precedence than additives', function () {
+    //     expect(parse('2 + 3 * 5')()).toBe(17);
+    //     expect(parse('2 + 3 * 2 + 3')()).toBe(11);
+    // });
+    // it('substitutes undefined with zero in addition', function () {
+    //     expect(parse('a + 22')()).toBe(22);
+    //     expect(parse('42 + a')()).toBe(42);
+    // });
+    // it('substitutes undefined with zero in subtraction', function () {
+    //     expect(parse('a - 22')()).toBe(-22);
+    //     expect(parse('42 - a')()).toBe(42);
+    // });
+    // it('parses relational operators', function () {
+    //     expect(parse('1 < 2')()).toBe(true);
+    //     expect(parse('1 > 2')()).toBe(false);
+    //     expect(parse('1 <= 2')()).toBe(true);
+    //     expect(parse('2 <= 2')()).toBe(true);
+    //     expect(parse('1 >= 2')()).toBe(false);
+    //     expect(parse('2 >= 2')()).toBe(true);
+    // });
+    // it('parses equality operators', function () {
+    //     expect(parse('42 == 42')()).toBe(true);
+    //     expect(parse('42 == "42"')()).toBe(true);
+    //     expect(parse('42 != 42')()).toBe(false);
+    //     expect(parse('42 === 42')()).toBe(true);
+    //     expect(parse('42 === "42"')()).toBe(false);
+    //     expect(parse('42 !== 42')()).toBe(false);
+    // });
+    // it('parses relationals on a higher precedence than equality', function () {
+    //     expect(parse('2 == "2" > 2 === "2"')()).toBe(false);
+    // });
+    // it('parses additives on a higher precedence than relationals', function () {
+    //     expect(parse('2 + 3 < 6 - 2')()).toBe(false);
+    // });
+    // it('parses logical AND', function () {
+    //     expect(parse('true && true')()).toBe(true);
+    //     expect(parse('true && false')()).toBe(false);
+    // });
+    // it('parses logical OR', function () {
+    //     expect(parse('true || true')()).toBe(true);
+    //     expect(parse('true || false')()).toBe(true);
+    //     expect(parse('fales || false')()).toBe(false);
+    // });
+    // it('parses multiple ANDs', function () {
+    //     expect(parse('true && true && true')()).toBe(true);
+    //     expect(parse('true && true && false')()).toBe(false);
+    // });
+    // it('parses multiple ORs', function () {
+    //     expect(parse('true || true || true')()).toBe(true);
+    //     expect(parse('true || true || false')()).toBe(true);
+    //     expect(parse('false || false || true')()).toBe(true);
+    //     expect(parse('false || false || false')()).toBe(false);
+    // });
+    // it('short - circuits AND', function () {
+    //     var invoked;
+    //     var scope = { fn: function () { invoked = true; } };
+    //     parse('false && fn()')(scope);
+    //     expect(invoked).toBeUndefined();
+    // });
+    // it('short - circuits OR', function () {
+    //     var invoked;
+    //     var scope = { fn: function () { invoked = true; } };
+    //     parse('true || fn()')(scope);
+    //     expect(invoked).toBeUndefined();
+    // });
+    // it('parses the ternary expression', function () {
+    //     expect(parse('a === 42 ? true : false')({ a: 42 })).toBe(true);
+    //     expect(parse('a === 42 ? true : false')({ a: 43 })).toBe(false);
+    // });
+    // it('parses OR with a higher precedence than ternary', function () {
+    //     expect(parse('0 || 1 ? 0 || 2 : 0 || 3')()).toBe(2);
+    // });
+    // it('parses parentheses altering precedence order', function () {
+    //     expect(parse('21 * (3 - 1)')()).toBe(42);
+    //     expect(parse('false && (true || true)')()).toBe(false);
+    //     expect(parse('-((a % 2) === 0 ? 1 : 2)')({ a: 42 })).toBe(-1);
+    // });
+    it('parses several statements', function () {
+        var fn = parse('a = 1; b = 2; c = 3');
         var scope = {};
         fn(scope);
-        expect(scope.some.nested.property.path).toBe(42);
+        expect(scope).toEqual({ a: 1, b: 2, c: 3 });
     });
-    it('does not allow calling the function constructor', function () {
-        expect(function () {
-            var fn = parse('aFunction.constructor("return window;")()');
-            fn({ aFunction: function () { } });
-        }).toThrow();
+    it('returns the value of the last statement', function () {
+        expect(parse('a = 1; b = 2; a + b')({})).toBe(3);
     });
-    it('does not allow accessing window as computed property', function () {
-        var fn = parse('anObject["wnd"]');
-        expect(function () { fn({ anObject: { wnd: window } }); }).toThrow();
-    });
-    it('does not allow accessing window as non - computed property', function () {
-        var fn = parse('anObject.wnd');
-        expect(function () { fn({ anObject: { wnd: window } }); }).toThrow();
-    });
-
 });
