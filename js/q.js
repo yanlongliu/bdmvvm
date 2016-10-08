@@ -58,12 +58,12 @@ function $QProvider() {
         Promise.prototype.catch = function (onRejected) {
             return this.then(null, onRejected);
         };
-        Promise.prototype.finally = function (callback) {
+        Promise.prototype.finally = function (callback, progressBack) {
             return this.then(function (value) {
                 return handleFinallyCallback(callback, value, true);
             }, function (rejection) {
                 return handleFinallyCallback(callback, rejection, false);
-            });
+            }, progressBack);
         };
         function Deferred() {
             this.promise = new Promise();
@@ -75,7 +75,8 @@ function $QProvider() {
             if (value && _.isFunction(value.then)) {
                 value.then(
                     _.bind(this.resolve, this),
-                    _.bind(this.reject, this)
+                    _.bind(this.reject, this),
+                    _.bind(this.notify, this)
                 )
             } else {
                 this.promise.$$state.value = value;
