@@ -1,48 +1,48 @@
 // describe("filter", function () {
-//     // it('can be registered and obtained', function () {
-//     //     var myFilter = function () { };
-//     //     var myFilterFactory = function () {
-//     //         return myFilter;
-//     //     };
-//     //     register('my', myFilterFactory);
-//     //     expect(filter('my')).toBe(myFilter);
-//     // });
-//     // it('allows registering multiple filters with an object', function () {
-//     //     var myFilter = function () { };
-//     //     var myOtherFilter = function () { };
-//     //     register({
-//     //         my: function () {
-//     //             return myFilter;
-//     //         },
-//     //         myOther: function () {
-//     //             return myOtherFilter;
-//     //         }
-//     //     });
-//     //     expect(filter('my')).toBe(myFilter);
-//     //     expect(filter('myOther')).toBe(myOtherFilter);
-//     // });
-//     // it('can parse filter expressions', function () {
-//     //     register('upcase', function () {
-//     //         return function (str) {
-//     //             return str.toUpperCase();
-//     //         };
-//     //     });
-//     //     var fn = parse('aString | upcase');
-//     //     expect(fn({ aString: 'Hello' })).toEqual('HELLO');
-//     // });
-//     // it('can parse filter chain expressions', function () {
-//     //     register('upcase', function () {
-//     //         return function (s) {
-//     //             return s.toUpperCase();
-//     //         };
-//     //     });
-//     //     register('exclamate', function () {
-//     //         return function (s) {
-//     //             return s + '!';
-//     //         };
-//     //     });
-//     //     var fn = parse('"hello" | upcase | exclamate'); expect(fn()).toEqual('HELLO!');
-//     // });
+//     it('can be registered and obtained', function () {
+//         var myFilter = function () { };
+//         var myFilterFactory = function () {
+//             return myFilter;
+//         };
+//         register('my', myFilterFactory);
+//         expect(filter('my')).toBe(myFilter);
+//     });
+//     it('allows registering multiple filters with an object', function () {
+//         var myFilter = function () { };
+//         var myOtherFilter = function () { };
+//         register({
+//             my: function () {
+//                 return myFilter;
+//             },
+//             myOther: function () {
+//                 return myOtherFilter;
+//             }
+//         });
+//         expect(filter('my')).toBe(myFilter);
+//         expect(filter('myOther')).toBe(myOtherFilter);
+//     });
+//     it('can parse filter expressions', function () {
+//         register('upcase', function () {
+//             return function (str) {
+//                 return str.toUpperCase();
+//             };
+//         });
+//         var fn = parse('aString | upcase');
+//         expect(fn({ aString: 'Hello' })).toEqual('HELLO');
+//     });
+//     it('can parse filter chain expressions', function () {
+//         register('upcase', function () {
+//             return function (s) {
+//                 return s.toUpperCase();
+//             };
+//         });
+//         register('exclamate', function () {
+//             return function (s) {
+//                 return s + '!';
+//             };
+//         });
+//         var fn = parse('"hello" | upcase | exclamate'); expect(fn()).toEqual('HELLO!');
+//     });
 //     it('can pass several additional arguments to filters', function () {
 //         register('surround', function () {
 //             return function (s, left, right) {
@@ -133,35 +133,35 @@
 //     });
 // });
 
-describe("filter", function () {
-    beforeEach(function () {
-        publishExternalAPI();
-    });
-    it('can be registered and obtained', function () {
-        var myFilter = function () { };
-        var myFilterFactory = function () {
-            return myFilter;
-        };
-        var injector = createInjector(['ng', function ($filterProvider) {
-            $filterProvider.register('my', myFilterFactory);
-        }]);
-        var $filter = injector.get('$filter');
-        expect($filter('my')).toBe(myFilter);
-    });
-    it('allows registering multiple filters with an object', function () {
-        var myFilter = function () { };
-        var myOtherFilter = function () { };
-        var injector = createInjector(['ng', function ($filterProvider) {
-            $filterProvider.register({
-                my: function () {
-                    return myFilter;
-                },
-                myOther: function () {
-                    return myOtherFilter;
-                }
-            });
-        }]);
-        var $filter = injector.get('$filter'); 
-        expect($filter('my')).toBe(myFilter); 
-        expect($filter('myOther')).toBe(myOtherFilter);
-    }); });
+// describe("filter", function () {
+//     beforeEach(function () {
+//         publishExternalAPI();
+//     });
+//     it('can be registered and obtained', function () {
+//         var myFilter = function () { };
+//         var myFilterFactory = function () {
+//             return myFilter;
+//         };
+//         var injector = createInjector(['ng', function ($filterProvider) {
+//             $filterProvider.register('my', myFilterFactory);
+//         }]);
+//         var $filter = injector.get('$filter');
+//         expect($filter('my')).toBe(myFilter);
+//     });
+//     it('allows registering multiple filters with an object', function () {
+//         var myFilter = function () { };
+//         var myOtherFilter = function () { };
+//         var injector = createInjector(['ng', function ($filterProvider) {
+//             $filterProvider.register({
+//                 my: function () {
+//                     return myFilter;
+//                 },
+//                 myOther: function () {
+//                     return myOtherFilter;
+//                 }
+//             });
+//         }]);
+//         var $filter = injector.get('$filter'); 
+//         expect($filter('my')).toBe(myFilter); 
+//         expect($filter('myOther')).toBe(myOtherFilter);
+//     }); });
