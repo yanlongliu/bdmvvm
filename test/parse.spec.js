@@ -384,13 +384,111 @@
 //     //     expect(parse('false && (true || true)')()).toBe(false);
 //     //     expect(parse('-((a % 2) === 0 ? 1 : 2)')({ a: 42 })).toBe(-1);
 //     // });
-//     it('parses several statements', function () {
-//         var fn = parse('a = 1; b = 2; c = 3');
-//         var scope = {};
-//         fn(scope);
-//         expect(scope).toEqual({ a: 1, b: 2, c: 3 });
+//     // it('parses several statements', function () {
+//     //     var fn = parse('a = 1; b = 2; c = 3');
+//     //     var scope = {};
+//     //     fn(scope);
+//     //     expect(scope).toEqual({ a: 1, b: 2, c: 3 });
+//     // });
+//     // it('returns the value of the last statement', function () {
+//     //     expect(parse('a = 1; b = 2; a + b')({})).toBe(3);
+//     // });
+//     // it('returns the function itself when given one', function () {
+//     //     var fn = function () { };
+//     //     expect(parse(fn)).toBe(fn);
+//     // });
+//     // it('still returns a function when given no argument', function () {
+//     //     expect(parse()).toEqual(jasmine.any(Function));
+//     // });
+//     it('marks arrays constant when elements are constant', function () {
+//         expect(parse('[1, 2, 3]').constant).toBe(true);
+//         expect(parse('[1, [2, [3]]]').constant).toBe(true); expect(parse('[1, 2, a]').constant).toBe(false); expect(parse('[1, [2, [a]]]').constant).toBe(false);
 //     });
-//     it('returns the value of the last statement', function () {
-//         expect(parse('a = 1; b = 2; a + b')({})).toBe(3);
+//     it('marks this as non-constant', function () {
+//         expect(parse('this').constant).toBe(false);
+//     });
+//     it('marks non-computed lookup constant when object is constant', function () {
+//         expect(parse('{a: 1}.a').constant).toBe(true); expect(parse('obj.a').constant).toBe(false);
+//     });
+//     it('marks binaries constant when both arguments are constant', function () {
+//         expect(parse('1 + 2').constant).toBe(true);
+//         expect(parse('1 + 2').literal).toBe(false);
+//         expect(parse('1 + a').constant).toBe(false);
+//         expect(parse('a + 1').constant).toBe(false);
+//         expect(parse('a + a').constant).toBe(false);
+//     });
+//     it('marks logicals constant when both arguments are constant', function () {
+//         expect(parse('true && false').constant).toBe(true);
+//         expect(parse('true && false').literal).toBe(false);
+//         expect(parse('true && a').constant).toBe(false);
+//         expect(parse('a && false').constant).toBe(false);
+//         expect(parse('a && b').constant).toBe(false);
+//     });
+//     it('allows calling assign on identifier expressions', function () {
+//         var fn = parse('anAttribute');
+//         expect(fn.assign).toBeDefined();
+//         var scope = {};
+//         fn.assign(scope, 42); expect(scope.anAttribute).toBe(42);
+//     });
+//     it('allows calling assign on member expressions', function () {
+//         var fn = parse('anObject.anAttribute'); expect(fn.assign).toBeDefined();
+//         var scope = {};
+//         fn.assign(scope, 42); expect(scope.anObject).toEqual({ anAttribute: 42 });
 //     });
 // });
+
+describe("parse", function () {
+    var parse;
+    beforeEach(function () {
+        publishExternalAPI();
+        parse = createInjector(['ng']).get('$parse');
+    });
+    it('can parse filter expressions', function () {
+        parse = createInjector(['ng', function ($filterProvider) {
+            $filterProvider.register('upcase', function () {
+                return function (str) {
+                    return str.toUpperCase();
+                };
+            });
+        }]).get('$parse');
+        var fn = parse('aString | upcase');
+        expect(fn({ aString: 'Hello' })).toEqual('HELLO');
+    });
+    it('can parse filter chain expressions', function () {
+        parse = createInjector(['ng', function ($filterProvider) {
+            $filterProvider.register('upcase', function () {
+                return function (s) {
+                    return s.toUpperCase();
+                };
+            });
+            $filterProvider.register('exclamate', function () {
+                return function (s) {
+                    return s + '!';
+                };
+            });
+        }]).get('$parse');
+        var fn = parse('"hello" | upcase | exclamate');
+        expect(fn()).toEqual('HELLO!');
+    });
+    it('can pass an additional argument to filters', function () {
+        parse = createInjector(['ng', function ($filterProvider) {
+            $filterProvider.register('repeat', function () {
+                return function (s, times) {
+                    return _.repeat(s, times);
+                };
+            });
+        }]).get('$parse');
+        var fn = parse('"hello" | repeat:3');
+        expect(fn()).toEqual('hellohellohello');
+    });
+    it('can pass several additional arguments to filters', function () {
+        parse = createInjector(['ng', function ($filterProvider) {
+            $filterProvider.register('surround', function () {
+                return function (s, left, right) {
+                    return left + s + right;
+                };
+            });
+        }]).get('$parse');
+        var fn = parse('"hello" | surround:"*":"!"'); expect(fn()).toEqual('*hello!');
+    });
+});
