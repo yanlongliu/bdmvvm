@@ -210,46 +210,58 @@ describe("$q", function () {
         expect(fulfilledSpy).toHaveBeenCalledWith(21);
     });
 
-    // it('rejects when nested promise rejects in finally', function () {
-    //     var d = $q.defer();
-    //     var fulfilledSpy = jasmine.createSpy();
-    //     var rejectedSpy = jasmine.createSpy();
-    //     var rejectNested;
-    //     d.promise.then(function (result) {
-    //         return result + 1;
-    //     }).finally(function (result) {
-    //         var d2 = $q.defer();
-    //         rejectNested = function () {
-    //             d2.reject('fail');
-    //         };
-    //         return d2.promise;
-    //     }).then(fulfilledSpy, rejectedSpy);
-    //     d.resolve(20);
-    //     $rootScope.$apply();
-    //     expect(fulfilledSpy).not.toHaveBeenCalled();
-    //     rejectNested();
-    //     $rootScope.$apply();
-    //     expect(fulfilledSpy).not.toHaveBeenCalled();
-    //     expect(rejectedSpy).toHaveBeenCalledWith('fail');
-    // });
-    // it('rejects to original value when nested promise resolves', function () {
-    //     var d = $q.defer();
-    //     var rejectedSpy = jasmine.createSpy(); 
-    //     var resolveNested;
-    //     d.promise.then(function (result) {
-    //         throw 'fail';
-    //     }).finally(function (result) {
-    //         var d2 = $q.defer(); 
-    //         resolveNested = function () {
-    //             d2.resolve('abc');
-    //         };
-    //         return d2.promise;
-    //     }).catch(rejectedSpy);
-    //     d.resolve(20);
-    //     $rootScope.$apply();
-    //     expect(rejectedSpy).not.toHaveBeenCalled();
-    //     resolveNested();
-    //     $rootScope.$apply();
-    //     expect(rejectedSpy).toHaveBeenCalledWith('fail');
-    // });
+    it('rejects when nested promise rejects in finally', function () {
+        var d = $q.defer();
+        var fulfilledSpy = jasmine.createSpy();
+        var rejectedSpy = jasmine.createSpy();
+        var rejectNested;
+        d.promise.then(function (result) {
+            return result + 1;
+        }).finally(function (result) {
+            var d2 = $q.defer();
+            rejectNested = function () {
+                d2.reject('fail');
+            };
+            return d2.promise;
+        }).then(fulfilledSpy, rejectedSpy);
+        d.resolve(20);
+        $rootScope.$apply();
+        expect(fulfilledSpy).not.toHaveBeenCalled();
+        rejectNested();
+        $rootScope.$apply();
+        expect(fulfilledSpy).not.toHaveBeenCalled();
+        expect(rejectedSpy).toHaveBeenCalledWith('fail');
+    });
+    it('rejects to original value when nested promise resolves', function () {
+        var d = $q.defer();
+        var rejectedSpy = jasmine.createSpy();
+        var resolveNested;
+        d.promise.then(function (result) {
+            throw 'fail';
+        }).finally(function (result) {
+            var d2 = $q.defer();
+            resolveNested = function () {
+                d2.resolve('abc');
+            };
+            return d2.promise;
+        }).catch(rejectedSpy);
+        d.resolve(20);
+        $rootScope.$apply();
+        expect(rejectedSpy).not.toHaveBeenCalled();
+        resolveNested();
+        $rootScope.$apply();
+        expect(rejectedSpy).toHaveBeenCalledWith('fail');
+    });
+
+    it('can report progress many times', function () {
+        var d = $q.defer();
+        var progressSpy = jasmine.createSpy(); 
+        d.promise.then(null, null, progressSpy);
+        d.notify('40 %');
+        $rootScope.$apply();
+        d.notify('80 %');
+        d.notify('100 %');
+        $rootScope.$apply();
+        expect(progressSpy.calls.count()).toBe(3);
+    });
 });
