@@ -1,9 +1,10 @@
 describe("$q", function () {
-    var $q, $rootScope;
+    var $q, $$q, $rootScope;
     beforeEach(function () {
         publishExternalAPI();
         var injector = createInjector(['ng']);
         $q = injector.get('$q');
+        $$q = injector.get('$$q');
         $rootScope = injector.get('$rootScope');
     });
 
@@ -255,7 +256,7 @@ describe("$q", function () {
 
     it('can report progress many times', function () {
         var d = $q.defer();
-        var progressSpy = jasmine.createSpy(); 
+        var progressSpy = jasmine.createSpy();
         d.promise.then(null, null, progressSpy);
         d.notify('40 %');
         $rootScope.$apply();
@@ -263,5 +264,40 @@ describe("$q", function () {
         d.notify('100 %');
         $rootScope.$apply();
         expect(progressSpy.calls.count()).toBe(3);
+    });
+});
+describe('all', function () {
+    var $q, $rootScope;
+    beforeEach(function () {
+        publishExternalAPI();
+        var injector = createInjector(['ng']);
+        $q = injector.get('$q');
+        $rootScope = injector.get('$rootScope');
+    });
+    it('can resolve an array of promises to array of results', function () {
+        var promise = $q.all([$q.when(1), $q.when(2), $q.when(3)]);
+        var fulfilledSpy = jasmine.createSpy();
+        promise.then(fulfilledSpy);
+        $rootScope.$apply();
+        expect(fulfilledSpy).toHaveBeenCalledWith([1, 2, 3]);
+    });
+});
+
+describe('$$q', function () {
+    var $q, $$q, $rootScope;
+    beforeEach(function () {
+        publishExternalAPI();
+        var injector = createInjector(['ng']); 
+        $q = injector.get('$q');
+        $$q = injector.get('$$q');
+        $rootScope = injector.get('$rootScope');
+    });
+    it('uses deferreds that do not resolve at digest', function () {
+        var d = $$q.defer();
+        var fulfilledSpy = jasmine.createSpy();
+        d.promise.then(fulfilledSpy);
+        d.resolve('ok');
+        $rootScope.$apply();
+        expect(fulfilledSpy).not.toHaveBeenCalled();
     });
 });
