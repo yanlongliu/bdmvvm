@@ -130,6 +130,7 @@ function $RootScopeProvider() {
             if (!self.$$phase && !self.$$asyncQueue.length) {
                 setTimeout(function () {
                     if (self.$$asyncQueue.length) {
+                        console.log(1);
                         self.$root.$digest();
                     }
                 }, 0);
