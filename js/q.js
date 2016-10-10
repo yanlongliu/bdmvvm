@@ -24,7 +24,6 @@ function qFactory(callLater) {
         }
     }
     function processQueue(state) {
-        console.log(state);
         var pending = state.pending;
         delete state.pending;
         _.forEach(pending, function (handlers) {
