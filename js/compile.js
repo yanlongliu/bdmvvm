@@ -169,6 +169,9 @@ function $CompileProvider($provide) {
                 if ((!nodeLinkFn || !nodeLinkFn.terminal) && node.childNodes && node.childNodes.length) {
                     childLinkFn = compileNodes(node.childNodes);
                 }
+                if (nodeLinkFn && nodeLinkFn.scope) {
+                    attrs.$$element.addClass('ng-scope');
+                }
                 if (nodeLinkFn || childLinkFn) {
                     linkFns.push({
                         nodeLinkFn: nodeLinkFn,
@@ -184,16 +187,21 @@ function $CompileProvider($provide) {
                     stableNodeList[nodeIdx] = linkNodes[nodeIdx];
                 });
                 _.forEach(linkFns, function (linkFn) {
+                    var node = stableNodeList[linkFn.idx];
                     if (linkFn.nodeLinkFn) {
+                        if (linkFn.nodeLinkFn.scope) {
+                            scope = scope.$new();
+                            $(node).data('$scope', scope);
+                        }
                         linkFn.nodeLinkFn(
                             linkFn.childLinkFn,
                             scope,
-                            stableNodeList[linkFn.idx]
+                            node
                         );
                     } else {
                         linkFn.childLinkFn(
                             scope,
-                            stableNodeList[linkFn.idx].childNodes
+                            node.childNodes
                         );
                     }
                 });
@@ -206,17 +214,20 @@ function $CompileProvider($provide) {
             var terminalPriority = -Number.MAX_VALUE;
             var terminal = false;
             var preLinkFns = [], postLinkFns = [];
-            function addLinkFns(preLinkFn, postLinkFn, attrStart, attrEnd) {
+            var newScopeDirective, newIsolateScopeDirective;
+            function addLinkFns(preLinkFn, postLinkFn, attrStart, attrEnd, isolateScope) {
                 if (preLinkFn) {
                     if (attrStart) {
                         preLinkFn = groupElementsLinkFnWrapper(preLinkFn, attrStart, attrEnd);
                     }
+                    preLinkFn.isolateScope = isolateScope;
                     preLinkFns.push(preLinkFn);
                 }
                 if (postLinkFn) {
                     if (attrStart) {
                         postLinkFn = groupElementsLinkFnWrapper(postLinkFn, attrStart, attrEnd);
                     }
+                    postLinkFn.isolateScope = isolateScope;
                     postLinkFns.push(postLinkFn);
                 }
             }
@@ -227,14 +238,28 @@ function $CompileProvider($provide) {
                 if (directive.priority < terminalPriority) {
                     return false;
                 }
+                if (directive.scope) {
+                    if (_.isObject(directive.scope)) {
+                        if (newIsolateScopeDirective || newScopeDirective) {
+                            throw 'Multiple directives asking for new/inherited scope';
+                        }
+                        newIsolateScopeDirective = directive;
+                    } else {
+                        if (newIsolateScopeDirective) {
+                            throw 'Multiple directives asking for new/inherited scope';
+                        }
+                        newScopeDirective = newScopeDirective || directive;
+                    }
+                }
                 if (directive.compile) {
                     var linkFn = directive.compile($compileNode, attrs);
+                    var isolateScope = (directive === newIsolateScopeDirective);
                     var attrStart = directive.$$start;
                     var attrEnd = directive.$$end;
                     if (_.isFunction(linkFn)) {
-                        addLinkFns(null, linkFn, attrStart, attrEnd);
+                        addLinkFns(null, linkFn, attrStart, attrEnd, isolateScope);
                     } else if (linkFn) {
-                        addLinkFns(linkFn.pre, linkFn.post, attrStart, attrEnd);
+                        addLinkFns(linkFn.pre, linkFn.post, attrStart, attrEnd, isolateScope);
                     }
                 }
                 if (directive.terminal) {
@@ -244,17 +269,23 @@ function $CompileProvider($provide) {
             });
             function nodeLinkFn(childLinkFn, scope, linkNode) {
                 var $element = $(linkNode);
+
+                var isolateScope;
+                if (newIsolateScopeDirective) {
+                    isolateScope = scope.$new(true);
+                }
                 _.forEach(preLinkFns, function (linkFn) {
-                    linkFn(scope, $element, attrs);
+                    linkFn(linkFn.isolateScope ? isolateScope : scope, $element, attrs);
                 });
                 if (childLinkFn) {
                     childLinkFn(scope, linkNode.childNodes);
                 }
                 _.forEachRight(postLinkFns, function (linkFn) {
-                    linkFn(scope, $element, attrs);
+                    linkFn(linkFn.isolateScope ? isolateScope : scope, $element, attrs);
                 });
             }
             nodeLinkFn.terminal = terminal;
+            nodeLinkFn.scope = newScopeDirective && newScopeDirective.scope;
             return nodeLinkFn;
         }
         function collectDirectives(node, attrs) {
