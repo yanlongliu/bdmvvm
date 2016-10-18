@@ -203,15 +203,124 @@ describe('$compile', function () {
         it('allows updating classes', function () {
             registerAndCompile(
                 'myDirective',
-                '<my-directive class="one three four"></my-directive>', 
+                '<my-directive class="one three four"></my-directive>',
                 function (element, attrs) {
-                    attrs.$updateClass('one two three', 'one three four'); 
-                    expect(element.hasClass('one')).toBe(true); 
-                    expect(element.hasClass('two')).toBe(true); 
-                    expect(element.hasClass('three')).toBe(true); 
+                    attrs.$updateClass('one two three', 'one three four');
+                    expect(element.hasClass('one')).toBe(true);
+                    expect(element.hasClass('two')).toBe(true);
+                    expect(element.hasClass('three')).toBe(true);
                     expect(element.hasClass('four')).toBe(false);
                 });
         });
-
+        describe('linking', function () {
+            it('takes a scope and attaches it to elements', function () {
+                var injector = makeInjectorWithDirectives('myDirective', function () {
+                    return { compile: _.noop };
+                });
+                injector.invoke(function ($compile, $rootScope) {
+                    var el = $('<div my-directive></div>');
+                    $compile(el)($rootScope);
+                    expect(el.data('$scope')).toBe($rootScope);
+                });
+            });
+            it('calls directive link function with scope', function () {
+                var givenScope, givenElement, givenAttrs;
+                var injector = makeInjectorWithDirectives('myDirective', function () {
+                    return {
+                        compile: function () {
+                            return function link(scope, element, attrs) {
+                                givenScope = scope;
+                                givenElement = element;
+                                givenAttrs = attrs;
+                            };
+                        }
+                    };
+                });
+                injector.invoke(function ($compile, $rootScope) {
+                    var el = $('<div my-directive></div>');
+                    $compile(el)($rootScope);
+                    expect(givenScope).toBe($rootScope);
+                    expect(givenElement[0]).toBe(el[0]);
+                    expect(givenAttrs).toBeDefined();
+                    expect(givenAttrs.myDirective).toBeDefined();
+                });
+            });
+            it('links directive on child elements first', function () {
+                var givenElements = [];
+                var injector = makeInjectorWithDirectives('myDirective', function () {
+                    return {
+                        link: function (scope, element, attrs) {
+                            givenElements.push(element);
+                        }
+                    };
+                });
+                injector.invoke(function ($compile, $rootScope) {
+                    var el = $('<div my-directive><div my-directive></div></div>');
+                    $compile(el)($rootScope);
+                    expect(givenElements.length).toBe(2);
+                    expect(givenElements[0][0]).toBe(el[0].firstChild);
+                    expect(givenElements[1][0]).toBe(el[0]);
+                });
+            });
+            it('supports prelinking and postlinking', function () {
+                var linkings = [];
+                var injector = makeInjectorWithDirectives('myDirective', function () {
+                    return {
+                        link: {
+                            pre: function (scope, element) {
+                                linkings.push(['pre', element[0]]);
+                            },
+                            post: function (scope, element) {
+                                linkings.push(['post', element[0]]);
+                            }
+                        }
+                    };
+                });
+                injector.invoke(function ($compile, $rootScope) {
+                    var el = $('<div my-directive><div my-directive></div></div>');
+                    $compile(el)($rootScope);
+                    expect(linkings.length).toBe(4);
+                    expect(linkings[0]).toEqual(['pre', el[0]]);
+                    expect(linkings[1]).toEqual(['pre', el[0].firstChild]);
+                    expect(linkings[2]).toEqual(['post', el[0].firstChild]);
+                    expect(linkings[3]).toEqual(['post', el[0]]);
+                });
+            });
+            it('stabilizes node list during linking', function () {
+                var givenElements = [];
+                var injector = makeInjectorWithDirectives('myDirective', function () {
+                    return {
+                        link: function (scope, element, attrs) {
+                            givenElements.push(element[0]);
+                            element.after('<div></div>');
+                        }
+                    };
+                });
+                injector.invoke(function ($compile, $rootScope) {
+                    var el = $('<div><div my-directive></div><div my-directive></div></div>');
+                    var el1 = el[0].childNodes[0], el2 = el[0].childNodes[1];
+                    $compile(el)($rootScope);
+                    expect(givenElements.length).toBe(2);
+                    expect(givenElements[0]).toBe(el1);
+                    expect(givenElements[1]).toBe(el2);
+                });
+            });
+            it('makes new scope for element when directive asks for it', function () {
+                var givenScope;
+                var injector = makeInjectorWithDirectives('myDirective', function () {
+                    return {
+                        scope: true,
+                        link: function (scope) {
+                            givenScope = scope;
+                        }
+                    };
+                });
+                injector.invoke(function ($compile, $rootScope) {
+                    var el = $('<div my-directive></div>'); 
+                    $compile(el)($rootScope); 
+                    expect(givenScope.$parent).toBe($rootScope);
+                });
+            });
+        });
     });
 });
