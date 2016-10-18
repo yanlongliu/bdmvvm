@@ -273,6 +273,8 @@ function $CompileProvider($provide) {
                 var isolateScope;
                 if (newIsolateScopeDirective) {
                     isolateScope = scope.$new(true);
+                    $element.addClass('ng-isolate-scope'); 
+                    $element.data('$isolateScope', isolateScope);
                 }
                 _.forEach(preLinkFns, function (linkFn) {
                     linkFn(linkFn.isolateScope ? isolateScope : scope, $element, attrs);
