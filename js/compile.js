@@ -331,9 +331,12 @@ function $CompileProvider($provide) {
                                 break;
                             case '&':
                                 var parentExpr = $parse(attrs[attrName]);
-                                isolateScope[scopeName] = function() {
-                                    return parentExpr(scope);
+                                if (parentExpr === _.noop && definition.optional) {
+                                    break;
                                 }
+                                isolateScope[scopeName] = function (locals) {
+                                    return parentExpr(scope, locals);
+                                };
                                 break;
                         }
                     });
