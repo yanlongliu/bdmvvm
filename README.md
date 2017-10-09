@@ -17,63 +17,63 @@
 
 * scope  
 
-    * scope以及脏检查
+	* scope以及脏检查
 
-    * scope方法
+	* scope方法
 
-    * scope继承
+	* scope继承
 
-    * collection观察
+	* collection观察
 
-    * scope事件  
+	* scope事件  
     
 * 解释器  
 
-    * 解释性语言
+	* 解释性语言
 
-    * 词表达式
+	* 词表达式
 
-    * 方法调用表达式
+	* 方法调用表达式
 
-    * 操作表达式
+	* 操作表达式
 
-    * 过滤器  
+	* 过滤器  
     
-    * 观察表达式
+	* 观察表达式
 
 * 模块和依赖注入  
 
-    * 模块和注入  
+	* 模块和注入  
     
-    * providers  
+	* providers  
     
-    * 高级别的依赖注入  
+	* 高级别的依赖注入  
   
 * 工具集  
-
-    * promise  
+	
+	* promise  
     
-    * http  
+	* http  
 
 * 指令  
 
-    * dom编译和基础指令  
+	* dom编译和基础指令  
     
-    * 属性指令  
+	* 属性指令  
     
-    * 指令的链接和scope  
+	* 指令的链接和scope  
     
-    * 控制器  
+	* 控制器  
     
-    * 指令中的模板  
+	* 指令中的模板  
     
-    * 嵌入包含  
+	* 嵌入包含  
     
-    * 改写  
+	* 改写  
     
-    * 组件  
+	* 组件  
     
-    * Bootstrapping  
+	* Bootstrapping  
     
 
 
