@@ -6,11 +6,11 @@
 
 | 模块 | 描述 |
 |---------|-------------|
-| [scope]               | mvvm状态管理模块 |
-| [parse]        | 解释器模块 |
-| [module&inject]         | 模块以及依赖注入管理 |
-| [Utils]    | 工具集 |
-| [directive]    | 指令模块 |
+| scope               | mvvm状态管理模块 |
+| parse        | 解释器模块 |
+| module&inject         | 模块以及依赖注入管理 |
+| Utils    | 工具集 |
+| directive    | 指令模块 |
 
 目录结构
 -------------------
