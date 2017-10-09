@@ -74,27 +74,8 @@
 	* 组件  
     
 	* Bootstrapping  
-    
-
-
+  
 ****
-### webpack配置
-`用的是脚手架的默认配置，项目暂时无需特殊配置。`
-
-### server配置
-* 路由  
-
-```javascript
-var isMock = process.env.isMock;
-router.get('/get-pagelist', function(req, res, next) {
-    fs.readFile(__dirname + '/../usermock/abtest/testLists.json', 'utf8', (err, data) => {
-        res.json(JSON.parse(data));
-    });
-});
-```
-* mockData模拟数据
-
-![image](http://git.daojia-inc.com/liuyanlong/shutterstock/raw/f316888e1b47a1122feff55c75f88764bf238a81/234.png)
 
 
 
